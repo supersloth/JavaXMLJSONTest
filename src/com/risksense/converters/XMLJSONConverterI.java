@@ -19,6 +19,4 @@ public interface XMLJSONConverterI {
      */
     public void convertJSONtoXML(File json, File xml) throws IOException;
     
-   public void eat();//delete this
-   public void travel();//delete this
 }

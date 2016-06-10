@@ -5,92 +5,56 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.FileNotFoundException;
-import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.Map;
-import java.util.Scanner;
 import java.util.Set;
 
-import org.json_custom.JSONObject;
-import org.json_custom.JSONString;
-import org.json_custom.JSONStringer;
-import org.json_custom.JSONTokener;
-import org.json_custom.XML;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
-import com.google.gson.stream.JsonReader;
 
 public class XMLJSONConverter implements XMLJSONConverterI {
 	
-   public void eat(){
-      System.out.println("Interface eats");
-   }
-
-   public void travel(){
-      System.out.println("Interface travels");
-   } 
-
-   public int noOfLegs(){
-      return 0;
-   }
-
-   /*
-   public static void main(String args[]) throws IOException{
-	  XMLJSONConverter x = new XMLJSONConverter();
-      //x.eat();
-      //x.travel();
-      
-      //System.out.println(args[0]);
-      //System.out.println(args[1]);
-      
-      File fileIn = new File(args[0]);
-      File fileOut = new File(args[1]);
-      
-      //System.out.println(fileIn.getPath());
-      //System.out.println(fileOut.canRead());
-      
-      x.convertJSONtoXML(fileIn,fileOut);
-
-   }
-   */
-
    	//public void convertJSONtoXML(String json, String xml) throws IOException {
 	public void convertJSONtoXML(File json, File xml) throws IOException {
 		JsonElement jsonElement = convertFileToJSONElement(json);
-		routeJsonElement(jsonElement);
 		
+		StringBuilder sb = new StringBuilder();
+   		sb.append(routeJsonElement(jsonElement));
+   		
+   		writeXMLFile(xml, sb.toString());
 	}
 	
-	public static void routeJsonElement(JsonElement jsonElement) {
+	public void writeXMLFile(File xmlfile, String xmlstring) throws IOException {
+		System.out.println(xmlstring);
+	}
+	
+	public static String routeJsonElement(JsonElement jsonElement) {
+		
 		if(jsonElement.isJsonNull())
 		{
-			buildNullXmlElement();
+			return buildNullXmlElement();
 		}
 		
 		if(jsonElement.isJsonPrimitive())
 		{
-			buildPrimitiveXmlElement(jsonElement.getAsJsonPrimitive());
+			return buildPrimitiveXmlElement(jsonElement.getAsJsonPrimitive());
 		}
 		
 		if(jsonElement.isJsonArray())
 		{
-			buildArrayXmlElement(jsonElement.getAsJsonArray());
+			return buildArrayXmlElement(jsonElement.getAsJsonArray());
 		}
 		
 		if(jsonElement.isJsonObject())
 		{
-			buildObjectXmlElement(jsonElement.getAsJsonObject());
+			return buildObjectXmlElement(jsonElement.getAsJsonObject());
 		}
+		
+		return "";
 	}
-	
 	
 	public static JsonObject convertFileToJSONObject (File fileName){
 
@@ -142,46 +106,33 @@ public class XMLJSONConverter implements XMLJSONConverterI {
 	        br.close();
 	    }
 	}
-	
-	
-   	public static void printJsonObjectForReal(JsonObject object) {
-   		Set<Map.Entry<String, JsonElement>> entrySet = object.entrySet();
-   		for(Map.Entry<String, JsonElement> entry : entrySet) {
-   		    //Print key and value
-   	        System.out.println("key: "+ entry.getKey() + "; value: " + entry.getValue());
-   	        
-   	        //for nested objects iteration if required
-   	        if (entry.getValue() instanceof JsonObject)
-   	        	printJsonObjectForReal((JsonObject)entry.getValue());
-   		}
+   	
+   	public static String buildNullXmlElement() {
+   		return "</null>";
    	}
    	
-   	public static void buildNullXmlElement() {
-   		System.out.println("</null>");
-   		//return "</null>";
-   	}
-   	
-   	public static void buildNullXmlElement(String name) {
+   	public static String buildNullXmlElement(String name) {
    		if(!name.trim().isEmpty())
    		{
-   			System.out.println("<null name=\"" + name + "\"/>");
+   			return "<null name=\"" + name + "\"/>";
    		} else {   		
-   			System.out.println("</null>");
+   			return "</null>";
    		}
-   		//return "</null>";
    	}
    	
-   	public static void buildObjectXmlElement(JsonObject object) {
-   		buildObjectXmlElement(object, "");
+   	public static String buildObjectXmlElement(JsonObject object) {
+   		return buildObjectXmlElement(object, "");
    	}
 
-   	public static void buildObjectXmlElement(JsonObject object, String name) {
-   		System.out.print("<object");
+   	public static String buildObjectXmlElement(JsonObject object, String name) {
+   		StringBuilder sb = new StringBuilder();
+   		
+   		sb.append("<object");
    		if(!name.trim().isEmpty())
    		{
-   			System.out.print(" name=\"" + name + "\"");
+   			sb.append(" name=\"" + name + "\"");
    		}
-   		System.out.println(">");
+   		sb.append(">");
    		
    		Set<Map.Entry<String, JsonElement>> entrySet = object.entrySet();
    		for(Map.Entry<String, JsonElement> entry : entrySet) {
@@ -189,43 +140,48 @@ public class XMLJSONConverter implements XMLJSONConverterI {
    	        //for nested objects iteration if required
    	        if (entry.getValue() instanceof JsonObject)
    	        {
-   	        	buildObjectXmlElement((JsonObject)entry.getValue(), entry.getKey());
+   	        	sb.append(buildObjectXmlElement((JsonObject)entry.getValue(), entry.getKey()));
    	        }
    	        else if (entry.getValue() instanceof JsonArray)
    	        {
-   	        	buildArrayXmlElement((JsonArray)entry.getValue(), entry.getKey());
+   	        	sb.append(buildArrayXmlElement((JsonArray)entry.getValue(), entry.getKey()));
    	        }
    	        else if (entry.getValue() instanceof JsonNull)
    	        {
-   	        	buildNullXmlElement(entry.getKey());
+   	        	sb.append(buildNullXmlElement(entry.getKey()));
    	        }
    	        else {
    	   	        String x = buildXmlElement(entry.getKey(), entry.getValue());
-   	   	        System.out.println(x);
+   	   	        sb.append(x);
    	        }
    		}
-   		System.out.println("</object>");
+   		sb.append("</object>");
+   		
+   		return sb.toString();
    	}
    	
-   	public static void buildArrayXmlElement(JsonArray jsonArray) {
-   		buildArrayXmlElement(jsonArray, "");
+   	public static String buildArrayXmlElement(JsonArray jsonArray) {
+   		return buildArrayXmlElement(jsonArray, "");
    	}
    	
-   	public static void buildArrayXmlElement(JsonArray jsonArray, String name) {
-   		System.out.print("<array");
+   	public static String buildArrayXmlElement(JsonArray jsonArray, String name) {
+   		StringBuilder sb = new StringBuilder();
+   		
+   		sb.append("<array");
    		if(!name.trim().isEmpty())
    		{
-   			System.out.print(" name=\"" + name + "\"");
+   			sb.append(" name=\"" + name + "\"");
    		}
-   		System.out.println(">");
+   		sb.append(">");
    		
    		for(int i = 0; i < jsonArray.size(); i++)
    		{
    			JsonElement jsonElement = jsonArray.get(i);
-   			routeJsonElement(jsonElement);
+   			sb.append(routeJsonElement(jsonElement));
    		}
-   		System.out.println("</array>");
-
+   		sb.append("</array>");
+   		
+   		return sb.toString();
    	}
    	
    	public static String buildPrimitiveXmlElement(JsonPrimitive jsonPrimitive) {
@@ -247,8 +203,6 @@ public class XMLJSONConverter implements XMLJSONConverterI {
    		sb.append("<" + name + ">");
    		sb.append(value);
    		sb.append("</" + name + ">");
-   		
-   		System.out.println(sb.toString());
    		
    		return sb.toString();
    	}

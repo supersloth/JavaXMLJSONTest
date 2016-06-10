@@ -5,7 +5,7 @@ import java.io.IOException;
 
 public class CLI {
    public static void main(String args[]) throws IOException, IllegalArgumentException{
-	  XMLJSONConverterI x2j = new XMLJSONConverter();
+	  XMLJSONConverterI x2j = ConverterFactory.createXMLJSONConverter();
 	  
 	  if(args.length != 2)
 	  {
