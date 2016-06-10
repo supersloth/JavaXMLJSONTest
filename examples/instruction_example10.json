@@ -1,0 +1,11 @@
+{
+    "profile": {
+        "firstName": "John",
+        "lastName": "Smith",
+        "age": 20,
+        "friends": ["Joe", {
+            "firstName": "Sue",
+            "lastName": "Jones"
+        }]
+    }
+}

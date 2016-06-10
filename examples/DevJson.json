@@ -1,0 +1,10 @@
+{
+    'name':'JSON',
+    'integer':1,
+    'double':2.0,
+    'boolean':true,
+    'nested': {
+        'id':42
+    },
+    'array': [1,2,3]
+}
