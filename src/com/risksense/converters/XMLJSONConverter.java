@@ -1,10 +1,10 @@
 package com.risksense.converters;
 
-import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.io.FileNotFoundException;
 import java.util.Map;
 import java.util.Set;
 
@@ -17,101 +17,103 @@ import com.google.gson.JsonPrimitive;
 
 public class XMLJSONConverter implements XMLJSONConverterI {
 	
-   	//public void convertJSONtoXML(String json, String xml) throws IOException {
 	public void convertJSONtoXML(File json, File xml) throws IOException {
-		JsonElement jsonElement = convertFileToJSONElement(json);
+		JsonElement jsonElement = convertFileToJSONElement(json); //read file in as jsonElement. 
 		
-		StringBuilder sb = new StringBuilder();
-   		sb.append(routeJsonElement(jsonElement));
+		StringBuilder sb = new StringBuilder(); //create a string to write all the info to
+   		sb.append(routeJsonElement(jsonElement)); //create root element all others attach too, return it as string, append
    		
-   		writeXMLFile(xml, sb.toString());
+   		writeXMLFile(xml, sb.toString()); //write to file!! done.
 	}
 	
 	public void writeXMLFile(File xmlfile, String xmlstring) throws IOException {
-		System.out.println(xmlstring);
+		//System.out.println(xmlstring);
+		try{
+			if (!xmlfile.exists()) {
+				xmlfile.createNewFile(); //create a file if it doesn't exist
+	        }
+			FileWriter fw = new FileWriter(xmlfile.getAbsoluteFile());
+			BufferedWriter bw = new BufferedWriter(fw);
+			bw.write(xmlstring); //write it
+			bw.close(); //close it
+		}catch(Exception e){
+			System.out.println(e);
+		}
 	}
 	
 	public static String routeJsonElement(JsonElement jsonElement) {
 		
-		if(jsonElement.isJsonNull())
+		//figure out what type of jsonElement something is and then route appropriate based on that
+		
+		if(jsonElement.isJsonNull()) //if it's a null
 		{
 			return buildNullXmlElement();
 		}
 		
-		if(jsonElement.isJsonPrimitive())
+		if(jsonElement.isJsonPrimitive()) //if it's a primitive, i.e. just a string or a number, but not an object or array
 		{
-			return buildPrimitiveXmlElement(jsonElement.getAsJsonPrimitive());
+			return buildPrimitiveXmlElement(jsonElement.getAsJsonPrimitive()); //build primitive element based on requirements scope
 		}
 		
-		if(jsonElement.isJsonArray())
+		if(jsonElement.isJsonArray()) // if it's an [a,r,r,a,y]
 		{
-			return buildArrayXmlElement(jsonElement.getAsJsonArray());
+			return buildArrayXmlElement(jsonElement.getAsJsonArray()); //build array element based on requirements scope
 		}
 		
-		if(jsonElement.isJsonObject())
+		if(jsonElement.isJsonObject()) //if it's { an : object }
 		{
-			return buildObjectXmlElement(jsonElement.getAsJsonObject());
+			return buildObjectXmlElement(jsonElement.getAsJsonObject()); //build object element based on requirements scope
 		}
 		
-		return "";
+		return ""; //it's nothing! return nothing! (it should never be nothing)
 	}
 	
 	public static JsonObject convertFileToJSONObject (File fileName){
 
-        // Read from File to String
+		//this function was what i started with to read to a JSONObject
+		//but then i realizxed JSONObject was a subset of what was possible
+		//and that wouldn't work for arrays, primitives, etc if that was the input
+		//so this was a good starting point but isn't actually used anymore
+		
         JsonObject jsonObject = new JsonObject();
         
         try {
             JsonParser parser = new JsonParser();
             JsonElement jsonElement = parser.parse(new FileReader(fileName.getPath()));
             jsonObject = jsonElement.getAsJsonObject();
-        } catch (FileNotFoundException e) {
-           
         } catch (IOException ioe){
-        
+        	System.out.println(ioe);
         }
         
         return jsonObject;
     }
 	
 	public static JsonElement convertFileToJSONElement (File fileName){
+		
+		//this is what's in use instead of the above function
+		//this read it in as the jsonELEMENT and then we do routing based on
+		//if that element is a null, primitive, array, or object
+		//JsonElement is a type available to us thru the google gson library i imported using maven
 
 		JsonElement jsonElement = null;
         try {
             JsonParser parser = new JsonParser();
             jsonElement = parser.parse(new FileReader(fileName.getPath()));
             //jsonObject = jsonElement.getAsJsonObject();
-        } catch (FileNotFoundException e) {
-           
         } catch (IOException ioe){
-        
+        	System.out.println(ioe);
         }
         
 		return jsonElement;
     }
-	
-	String readFile(File fileName) throws IOException {
-	    BufferedReader br = new BufferedReader(new FileReader(fileName));
-	    try {
-	        StringBuilder sb = new StringBuilder();
-	        String line = br.readLine();
-
-	        while (line != null) {
-	            sb.append(line);
-	            sb.append("\n");
-	            line = br.readLine();
-	        }
-	        return sb.toString();
-	    } finally {
-	        br.close();
-	    }
-	}
    	
    	public static String buildNullXmlElement() {
+   		//null xml element with no name
    		return "</null>";
    	}
    	
    	public static String buildNullXmlElement(String name) {
+   	//null xml element with name
    		if(!name.trim().isEmpty())
    		{
    			return "<null name=\"" + name + "\"/>";
@@ -121,94 +123,95 @@ public class XMLJSONConverter implements XMLJSONConverterI {
    	}
    	
    	public static String buildObjectXmlElement(JsonObject object) {
+   		//overload functions in case there's no name for elements
    		return buildObjectXmlElement(object, "");
    	}
 
    	public static String buildObjectXmlElement(JsonObject object, String name) {
    		StringBuilder sb = new StringBuilder();
    		
-   		sb.append("<object");
-   		if(!name.trim().isEmpty())
+   		sb.append("<object"); //create object tag
+   		if(!name.trim().isEmpty()) //add name if it exists
    		{
    			sb.append(" name=\"" + name + "\"");
    		}
-   		sb.append(">");
+   		sb.append(">"); //close object tag
    		
    		Set<Map.Entry<String, JsonElement>> entrySet = object.entrySet();
-   		for(Map.Entry<String, JsonElement> entry : entrySet) {
+   		for(Map.Entry<String, JsonElement> entry : entrySet) { //loop thru elements within jsonobject
    	        
    	        //for nested objects iteration if required
    	        if (entry.getValue() instanceof JsonObject)
    	        {
-   	        	sb.append(buildObjectXmlElement((JsonObject)entry.getValue(), entry.getKey()));
+   	        	//subelement is another object, so call this function again with recursion, append
+   	        	sb.append(buildObjectXmlElement((JsonObject)entry.getValue(), entry.getKey())); //also takes keyname which is important for the requirements scope
    	        }
    	        else if (entry.getValue() instanceof JsonArray)
    	        {
-   	        	sb.append(buildArrayXmlElement((JsonArray)entry.getValue(), entry.getKey()));
+   	        	//subelement is an array, so call that function, append
+   	        	sb.append(buildArrayXmlElement((JsonArray)entry.getValue(), entry.getKey())); //also takes keyname which is important for the requirements scope
    	        }
    	        else if (entry.getValue() instanceof JsonNull)
    	        {
-   	        	sb.append(buildNullXmlElement(entry.getKey()));
+   	        	//subelement is a null, so call that function, append
+   	        	sb.append(buildNullXmlElement(entry.getKey())); //also takes keyname which is important for the requirements scope
    	        }
    	        else {
-   	   	        String x = buildXmlElement(entry.getKey(), entry.getValue());
-   	   	        sb.append(x);
+   	        	//subelement is an primitive, so call that function, append
+   	        	sb.append(buildPrimitiveXmlElement((JsonPrimitive)entry.getValue(), entry.getKey())); //also takes keyname which is important for the requirements scope
    	        }
    		}
-   		sb.append("</object>");
+   		sb.append("</object>"); //close the object up
    		
-   		return sb.toString();
+   		return sb.toString(); //return the string
    	}
    	
    	public static String buildArrayXmlElement(JsonArray jsonArray) {
+   		//overload functions in case there's no name for elements
    		return buildArrayXmlElement(jsonArray, "");
    	}
    	
    	public static String buildArrayXmlElement(JsonArray jsonArray, String name) {
    		StringBuilder sb = new StringBuilder();
    		
-   		sb.append("<array");
-   		if(!name.trim().isEmpty())
+   		sb.append("<array"); //create array tag
+   		if(!name.trim().isEmpty()) //add name if it exists
    		{
    			sb.append(" name=\"" + name + "\"");
    		}
-   		sb.append(">");
+   		sb.append(">"); //close array tag
    		
-   		for(int i = 0; i < jsonArray.size(); i++)
+   		for(int i = 0; i < jsonArray.size(); i++) //loop thru array elements
    		{
    			JsonElement jsonElement = jsonArray.get(i);
-   			sb.append(routeJsonElement(jsonElement));
+   			sb.append(routeJsonElement(jsonElement)); //use routing function, easier with arrays then with objects
    		}
-   		sb.append("</array>");
+   		sb.append("</array>"); //close the array tag up
    		
-   		return sb.toString();
+   		return sb.toString(); //return the string
    	}
    	
-   	public static String buildPrimitiveXmlElement(JsonPrimitive jsonPrimitive) {
+   	public static String buildPrimitiveXmlElement(JsonPrimitive JsonPrimitive) {
+   		//overload functions in case there's no name for elements
+   		return buildPrimitiveXmlElement(JsonPrimitive, "");
+   	}
+   	
+   	public static String buildPrimitiveXmlElement(JsonPrimitive jsonPrimitive, String name) {
    		
-		String name = "";
-		String value = "";
-		
-		if(jsonPrimitive.isString()) {
-			name = "string";
+   		//primitives are 'just values'
+   		//the xml needs to be tagged with type and name if it exists based on requirements scope
+   		//s does a little bit of routing
+   		
+   		String type = "";
+   		
+   		if(jsonPrimitive.isString()) { //check for type
+   			type = "string";
 		} else if(jsonPrimitive.isBoolean()) {
-			name = "boolean"; 
+			type = "boolean"; 
 		}else if(jsonPrimitive.isNumber()) {
-			name = "number";
+			type = "number";
 		}
-		value = jsonPrimitive.getAsString();
-
-   		StringBuilder sb = new StringBuilder();
    		
-   		sb.append("<" + name + ">");
-   		sb.append(value);
-   		sb.append("</" + name + ">");
-   		
-   		return sb.toString();
-   	}
-   	
-   	public static String buildXmlElement(String name, Object value) {
-   		String type = getType(value.toString());
    		StringBuilder sb = new StringBuilder();
    		
    		sb.append("<" + type);
@@ -217,30 +220,10 @@ public class XMLJSONConverter implements XMLJSONConverterI {
    			sb.append(" name=\"" + name + "\"");
    		}
    		sb.append(">");
-   		sb.append(value.toString().replace("\"", ""));
+   		sb.append(jsonPrimitive.getAsString().replace("\"", ""));
    		sb.append("</" + type + ">");
    		
-   		return sb.toString();
+   		return sb.toString(); //return string
    	}
-   	
-   	public static String getType(String s) {  
-   	    String t = "string";
-   	    
-   	    if(isNumeric(s))
-   	    	return "number";
-   	    
-   	    if(isBoolean(s))
-   	    	return "boolean";
-   	    
-   	    return t;
-   	}  
-   	
-   	public static boolean isNumeric(String s) {  
-   	    return s.matches("[-+]?\\d*\\.?\\d+");  
-   	}  
-   	
-   	public static boolean isBoolean(String s) {  
-   	    return s.toLowerCase().equals("true")||s.toLowerCase().equals("false");
-   	}  
 
 }

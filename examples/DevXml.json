@@ -1,0 +1,1 @@
+<object><string name="name">JSON</string><number name="integer">1</number><number name="double">2.0</number><boolean name="boolean">true</boolean><object name="nested"><number name="id">42</number></object><array name="array"><number>1</number><number>2</number><number>3</number></array></object>

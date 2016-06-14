@@ -10,18 +10,13 @@ public class CLI {
 	  if(args.length != 2)
 	  {
 		  System.out.println("Please enter two arguments");
+	  } else {
+      	  
+	      File fileIn = new File(args[0]);
+	      File fileOut = new File(args[1]);
+	      
+	      x2j.convertJSONtoXML(fileIn,fileOut);
 	  }
-      
-	  System.out.println(args[0]);
-	  System.out.println(args[1]);
-	  
-      File fileIn = new File(args[0]);
-      File fileOut = new File(args[1]);
-      
-      System.out.println(fileIn.getAbsolutePath());
-      System.out.println(fileOut.getAbsolutePath());
-      
-      x2j.convertJSONtoXML(fileIn,fileOut);
 
    }
 }
