@@ -1,0 +1,4 @@
+com/risksense/converters/CLI.class
+com/risksense/converters/ConverterFactory.class
+com/risksense/converters/XMLJSONConverter.class
+com/risksense/converters/XMLJSONConverterI.class

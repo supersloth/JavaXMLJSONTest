@@ -16,7 +16,7 @@
                 <attribute name="Class-Path" value="."/>
             </manifest>
             <fileset dir="target/classes"/>
-            <zipfileset excludes="META-INF/*.SF" src="/Users/jrivera/.m2/repository/com/google/code/gson/gson/2.6.2/gson-2.6.2.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="dependency/gson-2.6.2.jar"/>
         </jar>
     </target>
 </project>

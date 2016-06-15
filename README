@@ -1,0 +1,43 @@
+Build with Ant and Run Jar File:
+
+1. Go into Project Directory
+$ cd JavaXMLJSONTest
+
+2. Build with Ant
+$ ant -f Ant_JavaXMLJSONTest.xml
+
+Example Output:
+Buildfile: /Users/jrivera/Code/workspace/JavaXMLJSONTest/Ant_JavaXMLJSONTest.xml
+
+create_run_jar:
+      [jar] Building jar: /Users/jrivera/Code/workspace/JavaXMLJSONTest/j2x.jar
+
+BUILD SUCCESSFUL
+Total time: 0 seconds
+
+3. Run Jar file with input json and output xml file
+$ java -jar j2x.jar examples/example.json e.xml
+
+4. Review output xml
+$ less e.xml
+
+
+Used Libraries:
+Gson by Google
+https://github.com/google/gson
+Installed as a dependency with Maven
+
+
+Test and Auxilary files:
+the "examples" folder contains json examples built from instructions.pdf, as well as the example.json that was originally provided in the packet and a DevJson.json file I built just for random testing.
+
+There are several .launch files that I used to send the correct parameters (or for example, testing not having parameters or too many parameters), just made it easier to run them often.
+
+Things I'm not sure about:
+Maven had stored gson in the location /Users/jrivera/.m2/repository/com/google/code/gson/gson/2.6.2/gson-2.6.2.jar and thats where the initial Ant file referenced it. I wasn't sure if this would build on someone elses computer so I moved it to depdendency/gson-2.6.2.jar and referenced it there. It seemed to build fine even if less then ideal. I didn't have time to really dig into building with maven, which would have probably been more cohesive. I got a build but it wasn't copying the gson into the package and I had to move on.
+
+I'm not sure if I did the Factory implementation at all, it seemed a strange implementation of what I understood that design pattern to be. But the factory exists and uses the Interface which my class Implements so hopefully that covers all the bases.
+
+
+General Design motivations:
+I tried not to reinvent the wheel so I used a library for the json, I started with Java-Json but it didn't handle primitives in a way that was very hepful to how the requirements stated they needed to be used. Gson was much better, I just had to do a little bit of routing instead of defaulting to a jsonObject every single time. Outside of that it was just building every item into a string in the proposed format, a little bit of recursion to call the right functions for the nesting and then writing the string out to a file. The coding was easy, I hadn't used java in quite a while so it was more picking up on some of the other things I mentioned above, which I had never done before.
